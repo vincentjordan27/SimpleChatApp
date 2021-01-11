@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,14 +16,14 @@ import okhttp3.*
 import okio.ByteString
 import org.json.JSONException
 import org.json.JSONObject
+import javax.net.ssl.SSLContext
 
 class ChatActivity : AppCompatActivity(), TextWatcher {
 
     private lateinit var name: String;
     private lateinit var webSocket: WebSocket
-    private val SERVER_PATH = "ws://echo.websocket.org"
     private lateinit var messageEdit: EditText
-    private lateinit var sendBtn: Button
+    private lateinit var sendBtn: TextView
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MessageAdapter
 
@@ -41,6 +42,8 @@ class ChatActivity : AppCompatActivity(), TextWatcher {
         val client = OkHttpClient()
         val request = Request.Builder().url(SERVER_PATH).build()
         webSocket = client.newWebSocket(request, SocketListener())
+
+
     }
 
     private inner class SocketListener : WebSocketListener() {
@@ -67,8 +70,21 @@ class ChatActivity : AppCompatActivity(), TextWatcher {
 
             runOnUiThread {
                 Toast.makeText(this@ChatActivity,
-                    "Socket Connection Succes",
+                    "Socket Connection Success",
                     Toast.LENGTH_SHORT).show()
+
+                initializeView()
+            }
+        }
+
+        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            super.onFailure(webSocket, t, response)
+
+            runOnUiThread {
+                Log.d("DEBUGS", t.message.toString())
+                Toast.makeText(this@ChatActivity,
+                        t.message,
+                        Toast.LENGTH_LONG).show()
 
                 initializeView()
             }
@@ -92,7 +108,6 @@ class ChatActivity : AppCompatActivity(), TextWatcher {
 
                 webSocket.send(jsonObject.toString())
 
-                recyclerView.smoothScrollToPosition(adapter.itemCount - 1)
 
                 jsonObject.put("isSent", true)
                 adapter.addItem(jsonObject)
@@ -133,6 +148,11 @@ class ChatActivity : AppCompatActivity(), TextWatcher {
         sendBtn.visibility = View.INVISIBLE
 
         messageEdit.addTextChangedListener(this)
+
+    }
+
+    companion object {
+        private const val SERVER_PATH = "IP WEBSOCKET"
 
     }
 }
